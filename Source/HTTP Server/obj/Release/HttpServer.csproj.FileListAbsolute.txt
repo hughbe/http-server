@@ -1,0 +1,14 @@
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\bin\Release\Http Server.exe.config
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\bin\Release\Http Server.exe.manifest
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\bin\Release\Http Server.application
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\bin\Release\Http Server.exe
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\bin\Release\Http Server.pdb
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\HttpServer.SettingsForm.resources
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\HttpServer.Properties.Resources.resources
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\HttpServer.csproj.GenerateResource.Cache
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\Http Server.TrustInfo.xml
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\Http Server.exe.manifest
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\Http Server.application
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\Http Server.exe
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\Http Server.pdb
+C:\Users\Hugh\Documents\Visual Studio 2015\Projects\HTTP Server\HTTP Server\obj\Release\HttpServer.csprojResolveAssemblyReference.cache
