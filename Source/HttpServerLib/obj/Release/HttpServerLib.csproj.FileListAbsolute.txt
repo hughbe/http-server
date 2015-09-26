@@ -1,6 +1,0 @@
-C:\Users\Hugh\Dropbox\Coding\PC\HttpServer\HTTPServerLib\bin\Release\HttpServerLib.dll
-C:\Users\Hugh\Dropbox\Coding\PC\HttpServer\HTTPServerLib\bin\Release\HttpServerLib.pdb
-C:\Users\Hugh\Dropbox\Coding\PC\HttpServer\HTTPServerLib\bin\Release\HtmlGenerator.dll
-C:\Users\Hugh\Dropbox\Coding\PC\HttpServer\HTTPServerLib\obj\Release\HttpServerLib.csprojResolveAssemblyReference.cache
-C:\Users\Hugh\Dropbox\Coding\PC\HttpServer\HTTPServerLib\obj\Release\HttpServerLib.dll
-C:\Users\Hugh\Dropbox\Coding\PC\HttpServer\HTTPServerLib\obj\Release\HttpServerLib.pdb
