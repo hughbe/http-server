@@ -4,6 +4,7 @@ using HttpServer.Properties;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.ComponentModel;
+using HttpServer.Utilities;
 
 namespace HttpServer
 {
@@ -33,8 +34,13 @@ namespace HttpServer
 
         public void Changed(object sender, EventArgs e)
         {
-            saveButton.Enabled = true;
-            resetButton.Enabled = true;
+            var shouldEnable = true;
+            if (authenticateCheckBox.Checked && (string.IsNullOrWhiteSpace(usernameTextBox.Text) || string.IsNullOrWhiteSpace(passwordTextBox.Text)))
+            {
+                shouldEnable = false;
+            }
+            saveButton.Enabled = shouldEnable;
+            resetButton.Enabled = shouldEnable;
         }
 
         private void ShowHelp() => Process.Start("http://hughbellamy.com/index.html#http-server-info");
@@ -57,8 +63,10 @@ namespace HttpServer
 
             ulrLinkLabel.Text = "http://localhost:" + Settings.Default.Port.ToString() + "/";
 
-            startupCheckBox.Checked = appRegistryKey.GetValue("HttpServer") != null;
+            authenticateCheckBox.Checked = Settings.Default.ShouldAuthenticate;
+            UpdateAuthenticateEnabled();
 
+            startupCheckBox.Checked = appRegistryKey.GetValue("HttpServer") != null;
             notifyCheckBox.Checked = Settings.Default.NotifyMe;
             updatesCheckBox.Checked = Settings.Default.CheckForUpdates;
 
@@ -68,8 +76,15 @@ namespace HttpServer
 
         private void SaveSettings()
         {
-            Settings.Default.Root = rootTextBox.Text;
             Settings.Default.Port = (int)portNumericUpDown.Value;
+            Settings.Default.Root = rootTextBox.Text;
+
+            Settings.Default.ShouldAuthenticate = authenticateCheckBox.Checked;
+            if (authenticateCheckBox.Checked)
+            {
+                Settings.Default.Username = usernameTextBox.Text;
+                Settings.Default.Password = new TripleDESStringEncryptor().EncryptString(passwordTextBox.Text);
+            }
 
             if (startupCheckBox.Checked)
             {
@@ -86,6 +101,21 @@ namespace HttpServer
 
             LoadSettings();
             DidSave?.Invoke(this, new EventArgs());
+        }
+
+        private void authenticateCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Changed(sender, e);
+            UpdateAuthenticateEnabled();
+        }
+
+        private void UpdateAuthenticateEnabled()
+        {
+            usernameLabel.Enabled = authenticateCheckBox.Checked;
+            usernameTextBox.Enabled = authenticateCheckBox.Checked;
+
+            passwordLabel.Enabled = authenticateCheckBox.Checked;
+            passwordTextBox.Enabled = authenticateCheckBox.Checked;
         }
     }
 }

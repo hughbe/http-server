@@ -11,11 +11,10 @@ namespace HttpServer
     {
         public FileSystemServer(string rootDirectory, int port, string prefix, ServerAuthenticator authentificator) : base(port, prefix, authentificator)
         {
-            UpdateRootDirectory(rootDirectory);
+            RootDirectory = rootDirectory;
         }
 
-        public string RootDirectory { get; private set; }
-        public void UpdateRootDirectory(string rootDirectory) => RootDirectory = rootDirectory;
+        public string RootDirectory { get; set; }
 
         protected override void HandleReceive(HttpListenerRequest request, HttpListenerResponse response, string requestUrl)
         {
@@ -32,8 +31,8 @@ namespace HttpServer
             {
                 return;
             }
-
-            SendError("File or Folder Not Found", response);
+            
+            SendError(404, "File or Folder Not Found", response);
         }
 
         private bool TrySendFile(string requestedPath, HttpListenerResponse response)
@@ -55,37 +54,43 @@ namespace HttpServer
             
             var title = "Directory Listing for " + requestedPath.Replace(RootDirectory, string.Empty);
 
-            var document = new HtmlDocument(title);
+            var document = new HtmlDocument();
+            document.Head.Add(Tags.Title.WithContent(title));
+
             var body = document.Body;
             
-            body.Add(Tags.H1.WithContent(title));
+            body.Add(Tags.H1.WithContent(title).WithClass("title directory-title"));
+            body.Add(Tags.Hr);
 
-            var pathsList = body.Add(Tags.Ul);
+            var pathsList = body.Add(Tags.Ul.WithClass("directory-list"));
 
+            if (!requestedPath.Equals(RootDirectory))
+            {
+                var backupAnchor = Tags.Anchor.WithAttribute("href", "../").WithContent("Backup").WithClass("directory-link backup");
+                pathsList.Add(Tags.Li.WithChildren(backupAnchor).WithClass("directory-list-item"));
+            }
             try
             {
                 var paths = GetFilesAndFolders(requestedPath);
 
                 foreach (var path in paths)
                 {
-                    var attributes = new Dictionary<string, string>
-                    {
-                        {"href", path }
-                    };
-                    var anchor = Tags.Anchor.WithAttributes(attributes).WithContent(path);
-                    pathsList.Add(Tags.Li.WithChildren(anchor));
+                    var anchor = Tags.Anchor.WithAttribute("href", path).WithContent(path).WithClass("directory-link");
+                    pathsList.Add(Tags.Li.WithChildren(anchor).WithClass("directory-list-item"));
                 }
                 
                 SendHtml(document, response);
             }
             catch (Exception exception)
             {
+                var errorCode = 500;
                 var errorMessage = "Unknown Error";
                 if (exception is SecurityException || exception is UnauthorizedAccessException)
                 {
+                    errorCode = 403;
                     errorMessage = "Access Denied";
                 }
-                SendError(errorMessage, response);
+                SendError(errorCode, errorMessage, response);
             }
 
             return true;
@@ -105,18 +110,7 @@ namespace HttpServer
                 var objectPath = path.Replace(requestedPath, "");
                 paths.Add(objectPath);
             }
-            return paths;
-        }
-
-        private void SendError(string errorMessage, HttpListenerResponse response)
-        {
-            var document = new HtmlDocument("Error");
-            var body = document.Body;
-
-            body.Add(Tags.H1.WithContent("Error"));
-            body.Add(Tags.H2.WithContent(errorMessage));
-
-            SendHtml(document, response);
+            return paths;   
         }
     }
 }

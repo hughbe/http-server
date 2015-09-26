@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using HttpServer.Properties;
 using System.Net;
+using HttpServer.Utilities;
 
 namespace HttpServer
 {
@@ -108,7 +109,20 @@ namespace HttpServer
 
         private static void StartServer()
         {
-            Server = new FileSystemServer(Settings.Default.Root, Settings.Default.Port, "+", ServerAuthenticator.None());
+            Server?.Stop();
+
+            var authenticator = ServerAuthenticator.None();
+            if (Settings.Default.ShouldAuthenticate)
+            {
+                try
+                {
+                    var decryptedPassword = new TripleDESStringEncryptor().DecryptString(Settings.Default.Password);
+                    authenticator = ServerAuthenticator.Protected(Settings.Default.Username, decryptedPassword);
+                }
+                catch { }
+            }
+
+            Server = new FileSystemServer(Settings.Default.Root, Settings.Default.Port, "+", authenticator);
 
             Server.DidUpdateState += (sender, e) => {
                 if (Server.State == HttpServerState.Started)
@@ -131,6 +145,22 @@ namespace HttpServer
             };
 
             Server.Start();
+            
+            Server.CssStyles = @"
+* {
+    font-family: verdana;
+}
+.backup {
+    padding-bottom: 1em;
+}
+a {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+            ";
+
         }
 
         private static void ShowNotification(string title, string text, int duration, bool ignoreSettings = false)

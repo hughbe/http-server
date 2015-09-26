@@ -9,21 +9,21 @@ namespace HttpServer
 {
     public abstract class Server
     {
-        protected Server(int port, string prefix, ServerAuthenticator authentificator)
+        protected Server(int port, string host, ServerAuthenticator authenticator)
         {
-            UpdatePort(port, false);
-            UpdateHost(prefix, false);
-            UpdateAuthentificator(authentificator, false);
+            Port = port;
+            Host = host;
+            Authenticator = authenticator;
             Listener = new HttpListener();
         }
 
         protected HttpListener Listener { get; }
         protected Thread ListenerThread { get; private set; }
         
-        public int Port { get; private set; }
-        public string Host { get; private set; }
+        public int Port { get; set; }
+        public string Host { get; set; }
 
-        public ServerAuthenticator Authenticator { get; private set; }
+        public ServerAuthenticator Authenticator { get; set; }
 
         public string Prefix => "http://" + Host + ":" + Port.ToString() + "/";
 
@@ -37,43 +37,12 @@ namespace HttpServer
             }
         }
 
-        public void UpdateAuthentificator(ServerAuthenticator authentificator) => UpdateAuthentificator(authentificator, true);
-        private void UpdateAuthentificator(ServerAuthenticator authentificator, bool restart)
-        {
-            Authenticator = authentificator;
-
-            if (restart)
-            {
-                Restart();
-            }
-        }
-
-        public void UpdateHost(string host) => UpdateHost(host, true);
-        private void UpdateHost(string host, bool restart)
-        {
-            Host = host;
-
-            if (restart)
-            {
-                Restart();
-            }
-        }
-
-        public void UpdatePort(int port) => UpdatePort(port, true);
-        private void UpdatePort(int port, bool restart)
-        {
-            Port = port;
-
-            if (restart)
-            {
-                Restart();
-            }
-        }
-
         public event EventHandler<EventArgs> DidUpdateState;
 
         public HttpServerState State { get; private set; } = HttpServerState.NotStarted;
         public Exception Error { get; private set; }
+
+        public string CssStyles { get; set; }
 
         private void UpdateState(HttpServerState state)
         {
@@ -135,8 +104,7 @@ namespace HttpServer
             UpdateState(HttpServerState.Stopped);
 
             Listener.Abort();
-            Listener.Close();            
-            Listener?.Stop();
+            Listener.Close();
 
             ListenerThread?.Abort();
             ListenerThread = null;
@@ -183,25 +151,41 @@ namespace HttpServer
             }
         }
 
-        public static void SendHtml(HtmlDocument document, HttpListenerResponse response)
+        public void SendError(int errorCode, string errorMessage, HttpListenerResponse response)
+        {
+            if (errorMessage == null || response == null)
+            {
+                return;
+            }
+
+            var title = "Error " + errorCode;
+
+            var document = new HtmlDocument();
+            document.Head.Add(Tags.Title.WithContent(title));
+
+            var body = document.Body;
+
+            body.Add(Tags.H1.WithContent(title).WithClass("title error-title"));
+            body.Add(Tags.Hr);
+            body.Add(Tags.H2.WithContent(errorMessage).WithClass("error-message"));
+
+            SendHtml(document, response);
+        }
+
+        public void SendHtml(HtmlDocument document, HttpListenerResponse response)
         {
             if (document == null || response == null)
             {
                 return;
             }
-            SendString(document.Serialize(), response);
-        }
-
-        public static void SendString(string text, HttpListenerResponse response)
-        {
-            if (text == null || response == null)
+            if (!string.IsNullOrEmpty(CssStyles))
             {
-                return;
+                document.Head.Add(Tags.Style.WithContent(CssStyles));
             }
-            SendData(Encoding.UTF8.GetBytes(text), response);
+            SendData(Encoding.UTF8.GetBytes(document.Serialize()), response);
         }
 
-        public static void SendData(byte[] data, HttpListenerResponse response)
+        public void SendData(byte[] data, HttpListenerResponse response)
         {
             if (data == null || response == null)
             {
