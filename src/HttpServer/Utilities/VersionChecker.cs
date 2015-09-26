@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -7,7 +6,7 @@ namespace HttpServer
 {
     public static class VersionChecker
     {
-        private static string latestVersionURL = "http://hughbellamy.com/resources/versions/http-server/currentversion.txt";
+        private static string latestVersionURL = "https://github.com/hughbe/http-server/tree/master/resources/versions/currentversion.txt";
         
         public static string CurrentVersion => StandardizedString(Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
