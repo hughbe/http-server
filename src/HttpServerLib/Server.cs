@@ -140,7 +140,7 @@ namespace HttpServer
                         }
                     }
 
-                    string rawURL = request.RawUrl;
+                    string rawURL = Uri.UnescapeDataString(request.RawUrl);
                     Console.WriteLine(rawURL);
 
                     HandleReceive(request, response, rawURL);
