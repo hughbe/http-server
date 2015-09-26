@@ -1,36 +1,123 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 
-namespace HttpServer
+namespace Versions
 {
-    public static class VersionChecker
+    public class Version
     {
-        private static string latestVersionURL = "https://github.com/hughbe/http-server/tree/master/resources/versions/currentversion.txt";
-        
-        public static string CurrentVersion => StandardizedString(Assembly.GetExecutingAssembly().GetName().Version.ToString());
-
-        public static string LatestVersion
+        public Version(string id, DateTime date, List<string> notes, string url)
         {
-            get
+            Id = StandardizedString(id);
+            Notes = notes ?? new List<string>();
+            Date = date;
+            Url = url ?? "";
+        }
+
+        public static Version CurrentVersion => new Version(Assembly.GetExecutingAssembly().GetName().Version.ToString(), DateTime.Now, null, null);
+
+        public string Id { get; }
+        public DateTime Date { get; }
+
+        public List<string> Notes { get; }
+
+        public string Url { get; }
+
+        private string StandardizedString(string original)
+        {
+            var replaced = Regex.Replace(original, @"\r\n?|\n", "").Replace(" ", "");
+            return replaced;
+        }
+
+        public string ToJson()
+        {
+            var dateString = Date.Day + "/" + Date.Month + "/" + Date.Year + " " + Date.Hour + ":" + Date.Minute + ":" + Date.Second;
+            var xmlDoc = new XDocument(
+                            new XElement("Version",
+                                new XElement("Id", Id),
+                                new XElement("Date", dateString),
+                                new XElement("Notes",
+                                    new XElement("Note", Notes.ToArray())),
+                                new XElement("Url", Url)));
+            return xmlDoc.ToString();
+        }
+
+        public static Version FromJson(string xml)
+        {
+            try
             {
-                try
+                var xmlDocument = new XmlDocument();
+                xmlDocument.LoadXml(xml);
+
+                var info = xmlDocument.SelectSingleNode("Version");
+
+                var id = info.SelectSingleNode("Id").InnerText;
+
+                var date = DateTime.Now;
+
+                var rawDate = info.SelectSingleNode("Date")?.InnerText;
+                if (rawDate != null)
                 {
-                    return StandardizedString(new WebClient().DownloadString(latestVersionURL));
+                    date = Convert.ToDateTime(rawDate);
                 }
-                catch
+
+                var notes = new List<string>();
+
+                var notesNodes = info.SelectNodes("Notes/Note");
+
+                if (notesNodes != null)
                 {
-                    return CurrentVersion;
+                    foreach (XmlNode node in notesNodes)
+                    {
+                        notes.Add(node.InnerText);
+                    }
                 }
+
+                var url = info.SelectSingleNode("Url")?.InnerText;
+
+                return new Version(id, date, notes, url);
+            }
+            catch
+            {
+                return CurrentVersion;
+            }
+        }
+    }
+
+    public class VersionChecker
+    {
+        public VersionChecker(string versionDirectory)
+        {
+            if (!versionDirectory.EndsWith("/"))
+            {
+                versionDirectory += "/";
+            }
+            VersionDirectory = versionDirectory;
+            UpdateLatestVersion();
+        }
+
+        public string VersionDirectory { get; } 
+
+        public Version LatestVersion { get; private set; }
+        public void UpdateLatestVersion() => LatestVersion = GetVersion("currentversion");
+
+        public Version GetVersion(string versionId)
+        {
+            try
+            {
+                var versionInfo = new WebClient().DownloadString(VersionDirectory + versionId + ".xml");
+                return Version.FromJson(versionInfo);
+            }
+            catch
+            {
+                return Version.CurrentVersion;
             }
         }
 
-        private static string StandardizedString(string versionString)
-        {
-            var replaced = Regex.Replace(versionString, @"\r\n?|\n", "").Replace(" ", "");
-            return replaced;
-        }
-        
-        public static bool CurrentVersionIsUpToDate() => CurrentVersion.Equals(LatestVersion);
+        public bool UpToDate => Version.CurrentVersion.Id.Equals(LatestVersion.Id);
     }
 }

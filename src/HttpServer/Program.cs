@@ -3,6 +3,9 @@ using System.Windows.Forms;
 using HttpServer.Properties;
 using System.Net;
 using HttpServer.Utilities;
+using Versions;
+using Notifications;
+using System.Diagnostics;
 
 namespace HttpServer
 {
@@ -26,28 +29,12 @@ namespace HttpServer
             Application.Run();
         }
         
-        private static NotificationsManager NotificationsManager { get; } = new NotificationsManager("HTTP Server", Resources.Icon, ClickedNotification);
+        private static NotificationsManager NotificationsManager { get; } = new NotificationsManager("HTTP Server", Resources.Icon);
 
         private static SettingsForm SettingsForm { get; set; }
 
         private static FileSystemServer Server { get; set; }
-
-        private static void ClickedNotification(object sender, EventArgs e)
-        {
-            if (SettingsForm == null || SettingsForm.IsDisposed)
-            {
-                SettingsForm = new SettingsForm(DidUpdateSettings, ShowFolderBrowser);
-            }
-            if (!SettingsForm.Visible)
-            {
-                SettingsForm.Show();
-            }
-            else
-            {
-                SettingsForm.Hide();
-            }
-        }
-
+        
         private static void ShowFolderBrowser(object sender, EventArgs e) => ShowFolderBrowser(false);
 
         private static void ShowFolderBrowser(bool save)
@@ -81,7 +68,9 @@ namespace HttpServer
             {
                 return;
             }
-            if (!VersionChecker.CurrentVersionIsUpToDate())
+
+            var versionChecker = new VersionChecker("https://github.com/hughbe/http-server/tree/master/resources/versions/");
+            if (!versionChecker.UpToDate)
             {
                 ShowNotification("An update is available", "A new version of HTTP Server is available. Open Settings to download the new version.", 1000, true);
             }
@@ -89,6 +78,21 @@ namespace HttpServer
 
         private static void StartUI()
         {
+            NotificationsManager.NotificationIconClicked += (sender, e) =>
+            {
+                if (SettingsForm == null || SettingsForm.IsDisposed)
+                {
+                    SettingsForm = new SettingsForm(DidUpdateSettings, ShowFolderBrowser);
+                }
+                if (!SettingsForm.Visible)
+                {
+                    SettingsForm.Show();
+                }
+                else
+                {
+                    SettingsForm.Hide();
+                }
+            };
             NotificationsManager.AddContextMenuItem("Exit", (sender, e) => 
             {
                 NotificationsManager.Dispose();
