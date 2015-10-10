@@ -118,6 +118,8 @@ namespace Http.Server
         {
             while (State == HttpServerState.Started)
             {
+                try
+                {
                     HttpListenerContext context = Listener.GetContext();
 
                     HttpListenerRequest request = context.Request;
@@ -128,7 +130,7 @@ namespace Http.Server
                         var userRequest = (HttpListenerBasicIdentity)context.User.Identity;
                         var username = userRequest.Name;
                         var password = userRequest.Password;
-                        
+
                         if (username != Authentication.UserName || password != Authentication.Password)
                         {
                             response.StatusCode = 401;
@@ -140,6 +142,8 @@ namespace Http.Server
                     Console.WriteLine(rawURL);
 
                     HandleReceive(request, response, rawURL);
+                }
+                catch { }
             }
         }
 
