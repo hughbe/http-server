@@ -5,20 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Security;
 
-namespace HttpServer
+namespace Http.Server
 {
-    public class FileSystemServer : Server
+    public class FileSystemServer : HttpServer
     {
-        public FileSystemServer(string rootDirectory, int port, string prefix, ServerAuthenticator authentificator) : base(port, prefix, authentificator)
+        public FileSystemServer(string rootDirectory, int port, string prefix, HttpServerAuthentication authentication) : base(port, prefix, authentication)
         {
             RootDirectory = rootDirectory;
         }
 
         public string RootDirectory { get; set; }
 
-        protected override void HandleReceive(HttpListenerRequest request, HttpListenerResponse response, string requestUrl)
+        protected override void HandleReceive(HttpListenerRequest request, HttpListenerResponse response, string requestPath)
         {
-            string requestedPath = RootDirectory + requestUrl;
+            string requestedPath = RootDirectory + requestPath;
 
             var sentFile = TrySendFile(requestedPath, response);
             if (sentFile)
@@ -35,7 +35,7 @@ namespace HttpServer
             SendError(404, "File or Folder Not Found", response);
         }
 
-        private bool TrySendFile(string requestedPath, HttpListenerResponse response)
+        private static bool TrySendFile(string requestedPath, HttpListenerResponse response)
         {
             if (!File.Exists(requestedPath))
             {
@@ -55,19 +55,19 @@ namespace HttpServer
             var title = "Directory Listing for " + requestedPath.Replace(RootDirectory, string.Empty);
 
             var document = new HtmlDocument();
-            document.Head.Add(Tags.Title.WithContent(title));
+            document.Head.Add(Tag.Title.WithContent(title));
 
             var body = document.Body;
             
-            body.Add(Tags.H1.WithContent(title).WithClass("title directory-title"));
-            body.Add(Tags.Hr);
+            body.Add(Tag.H1.WithContent(title).WithClass("title directory-title"));
+            body.Add(Tag.Hr);
 
-            var pathsList = body.Add(Tags.Ul.WithClass("directory-list"));
+            var pathsList = body.Add(Tag.Ul.WithClass("directory-list"));
 
             if (!requestedPath.Equals(RootDirectory))
             {
-                var backupAnchor = Tags.Anchor.WithAttribute("href", "../").WithContent("Backup").WithClass("directory-link backup");
-                pathsList.Add(Tags.Li.WithChildren(backupAnchor).WithClass("directory-list-item"));
+                var backupAnchor = Tag.A.WithAttribute("href", "../").WithContent("Backup").WithClass("directory-link backup");
+                pathsList.Add(Tag.Li.WithChildren(backupAnchor).WithClass("directory-list-item"));
             }
             try
             {
@@ -75,24 +75,20 @@ namespace HttpServer
 
                 foreach (var path in paths)
                 {
-                    var anchor = Tags.Anchor.WithAttribute("href", path).WithContent(path).WithClass("directory-link");
-                    pathsList.Add(Tags.Li.WithChildren(anchor).WithClass("directory-list-item"));
+                    var anchor = Tag.A.WithAttribute("href", path).WithContent(path).WithClass("directory-link");
+                    pathsList.Add(Tag.Li.WithChildren(anchor).WithClass("directory-list-item"));
                 }
                 
                 SendHtml(document, response);
             }
-            catch (Exception exception)
+            catch (SecurityException)
             {
-                var errorCode = 500;
-                var errorMessage = "Unknown Error";
-                if (exception is SecurityException || exception is UnauthorizedAccessException)
-                {
-                    errorCode = 403;
-                    errorMessage = "Access Denied";
-                }
-                SendError(errorCode, errorMessage, response);
+                SendError(403, "Access Denied", response);
             }
-
+            catch (UnauthorizedAccessException)
+            {
+                SendError(403, "Access Denied", response);
+            }
             return true;
         }
 

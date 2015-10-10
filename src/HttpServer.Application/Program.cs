@@ -5,7 +5,7 @@ using System.Net;
 using HttpServer.Utilities;
 using Versions;
 using Notifications;
-using System.Diagnostics;
+using Http.Server;
 
 namespace HttpServer
 {
@@ -115,13 +115,13 @@ namespace HttpServer
         {
             Server?.Stop();
 
-            var authenticator = ServerAuthenticator.None();
+            var authenticator = HttpServerAuthentication.None();
             if (Settings.Default.ShouldAuthenticate)
             {
                 try
                 {
                     var decryptedPassword = new TripleDESStringEncryptor().DecryptString(Settings.Default.Password);
-                    authenticator = ServerAuthenticator.Protected(Settings.Default.Username, decryptedPassword);
+                    authenticator = HttpServerAuthentication.Protected(Settings.Default.Username, decryptedPassword);
                 }
                 catch { }
             }

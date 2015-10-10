@@ -1,4 +1,4 @@
-﻿namespace HttpServer
+﻿namespace Http.Server
 {
     public enum HttpServerState
     {
