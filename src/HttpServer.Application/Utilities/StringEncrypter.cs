@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,7 +11,7 @@ namespace HttpServer.Utilities
         string DecryptString(string encryptedText);
     }
 
-    public class TripleDESStringEncryptor : IStringEncryptor
+    public class TripleDESStringEncryptor : IDisposable, IStringEncryptor
     {
         private byte[] _key;
         private byte[] _iv;
@@ -43,6 +44,21 @@ namespace HttpServer.Utilities
 
                     return Encoding.Default.GetString(stream.ToArray());
                 }
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_provider != null)
+            {
+                _provider.Dispose();
+                _provider = null;
             }
         }
     }

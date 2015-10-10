@@ -6,14 +6,16 @@ namespace Notifications
 {
     public class NotificationsManager : IDisposable
     {
-        public NotifyIcon NotifyIcon { get; private set; } = new NotifyIcon();
-        public ContextMenu ContextMenu { get; private set; } = new ContextMenu();
+        public NotifyIcon NotifyIcon { get; private set; }
+        public ContextMenu ContextMenu { get; private set; }
 
         public event EventHandler NotificationIconClicked;
         public event EventHandler NotificationClicked;
 
         public NotificationsManager(string text, Icon icon)
         {
+            NotifyIcon = new NotifyIcon();
+            ContextMenu = new ContextMenu();
             NotifyIcon.Text = text;
             NotifyIcon.Icon = icon;
             NotifyIcon.ContextMenu = ContextMenu;
