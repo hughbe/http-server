@@ -3,9 +3,10 @@ using System.Windows.Forms;
 using HttpServer.Properties;
 using System.Net;
 using HttpServer.Utilities;
-using Versions;
+using VersionChecker;
 using Notifications;
 using Http.Server;
+using System.Reflection;
 
 namespace HttpServer
 {
@@ -69,10 +70,20 @@ namespace HttpServer
                 return;
             }
 
-            var versionChecker = new VersionChecker("https://github.com/hughbe/http-server/tree/master/resources/versions/");
-            if (!versionChecker.UpToDate)
+            var currentVersionId = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var currentVersion = new ApplicationVersion(currentVersionId);
+            try
             {
-                ShowNotification("An update is available", "A new version of HTTP Server is available. Open Settings to download the new version.", 1000, true);
+                var versionChecker = new ApplicationVersionChecker("https://github.com/hughbe/http-server/tree/master/resources/versions/", currentVersion);
+                var upToDate = versionChecker.IsUpToDate();
+                upToDate.RunSynchronously();
+                if (upToDate.Result)
+                {
+                    ShowNotification("An update is available", "A new version of HTTP Server is available. Open Settings to download the new version.", 1000, true);
+                }
+            }
+            catch
+            {
             }
         }
 
