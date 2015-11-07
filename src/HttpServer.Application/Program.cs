@@ -7,23 +7,24 @@ using VersionChecker;
 using Notifications;
 using Http.Server;
 using System.Reflection;
+using System.Web;
 
 namespace HttpServer
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         /// 
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             Application.EnableVisualStyles();
             
             InitializeVersionChecking();
 
-            StartUI();
+            StartUserInterface();
             CheckFirstLoad();
             StartServer();
 
@@ -75,19 +76,19 @@ namespace HttpServer
             try
             {
                 var versionChecker = new ApplicationVersionChecker("https://github.com/hughbe/http-server/tree/master/resources/versions/", currentVersion);
-                var upToDate = versionChecker.IsUpToDate();
-                upToDate.RunSynchronously();
-                if (upToDate.Result)
+                var upToDate = versionChecker.IsUpToDate().Result;
+                if (upToDate)
                 {
                     ShowNotification("An update is available", "A new version of HTTP Server is available. Open Settings to download the new version.", 1000, true);
                 }
             }
-            catch
+            catch (HttpException)
             {
+                Console.WriteLine("Error getting the latest update");
             }
         }
 
-        private static void StartUI()
+        private static void StartUserInterface()
         {
             NotificationsManager.NotificationIconClicked += (sender, e) =>
             {
@@ -104,6 +105,7 @@ namespace HttpServer
                     SettingsForm.Hide();
                 }
             };
+
             NotificationsManager.AddContextMenuItem("Exit", (sender, e) => 
             {
                 NotificationsManager.Dispose();
@@ -117,6 +119,7 @@ namespace HttpServer
             {
                 return;
             }
+
             Settings.Default.Root = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             Settings.Default.UsedBefore = true;
             Settings.Default.Save();
@@ -129,12 +132,8 @@ namespace HttpServer
             var authenticator = HttpServerAuthentication.None();
             if (Settings.Default.ShouldAuthenticate)
             {
-                try
-                {
-                    var decryptedPassword = new TripleDESStringEncryptor().DecryptString(Settings.Default.Password);
-                    authenticator = HttpServerAuthentication.Protected(Settings.Default.Username, decryptedPassword);
-                }
-                catch { }
+                var decryptedPassword = new TripleDesStringEncryptor().DecryptString(Settings.Default.Password);
+                authenticator = HttpServerAuthentication.Protected(Settings.Default.Username, decryptedPassword);
             }
 
             Server = new FileSystemServer(Settings.Default.Root, Settings.Default.Port, "+", authenticator);
@@ -184,6 +183,7 @@ a:hover {
             {
                 return;
             }
+
             NotificationsManager.ShowBalloonToolTip(title, text, duration);
         }
     }

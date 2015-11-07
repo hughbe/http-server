@@ -11,13 +11,13 @@ namespace HttpServer.Utilities
         string DecryptString(string encryptedText);
     }
 
-    public class TripleDESStringEncryptor : IDisposable, IStringEncryptor
+    public class TripleDesStringEncryptor : IDisposable, IStringEncryptor
     {
-        private byte[] _key;
-        private byte[] _iv;
+        private readonly byte[] _key;
+        private readonly byte[] _iv;
         private TripleDESCryptoServiceProvider _provider;
 
-        public TripleDESStringEncryptor()
+        public TripleDesStringEncryptor()
         {
             _key = Encoding.ASCII.GetBytes("GSYAHAGCBDUUADIADKOPAAAW");
             _iv = Encoding.ASCII.GetBytes("USAZBGAW");
@@ -34,11 +34,12 @@ namespace HttpServer.Utilities
             {
                 return null;
             }
-            using (MemoryStream stream = new MemoryStream())
+
+            using (var stream = new MemoryStream())
             {
-                using (CryptoStream cryptoStream = new CryptoStream(stream, transform, CryptoStreamMode.Write))
+                using (var cryptoStream = new CryptoStream(stream, transform, CryptoStreamMode.Write))
                 {
-                    byte[] input = Encoding.Default.GetBytes(text);
+                    var input = Encoding.Default.GetBytes(text);
                     cryptoStream.Write(input, 0, input.Length);
                     cryptoStream.FlushFinalBlock();
 

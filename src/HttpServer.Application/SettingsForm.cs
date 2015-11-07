@@ -34,11 +34,8 @@ namespace HttpServer
 
         public void Changed(object sender, EventArgs e)
         {
-            var shouldEnable = true;
-            if (authenticateCheckBox.Checked && (string.IsNullOrWhiteSpace(usernameTextBox.Text) || string.IsNullOrWhiteSpace(passwordTextBox.Text)))
-            {
-                shouldEnable = false;
-            }
+            var shouldEnable = !(authenticateCheckBox.Checked && (string.IsNullOrWhiteSpace(usernameTextBox.Text) || string.IsNullOrWhiteSpace(passwordTextBox.Text)));
+
             saveButton.Enabled = shouldEnable;
             resetButton.Enabled = shouldEnable;
         }
@@ -51,7 +48,7 @@ namespace HttpServer
 
         private void websiteLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) => Process.Start("http://hughbellamy.com");
         
-        private RegistryKey appRegistryKey { get; } = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+        private RegistryKey AppRegistryKey { get; } = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
         private void Reload(object sender, EventArgs e) => LoadSettings();
         private void Save(object sender, EventArgs e) => SaveSettings();
@@ -61,12 +58,12 @@ namespace HttpServer
             rootTextBox.Text = Settings.Default.Root;
             portNumericUpDown.Value = Settings.Default.Port;
 
-            ulrLinkLabel.Text = "http://localhost:" + Settings.Default.Port.ToString() + "/";
+            ulrLinkLabel.Text = "http://localhost:" + Settings.Default.Port + "/";
 
             authenticateCheckBox.Checked = Settings.Default.ShouldAuthenticate;
             UpdateAuthenticateEnabled();
 
-            startupCheckBox.Checked = appRegistryKey.GetValue("HttpServer") != null;
+            startupCheckBox.Checked = AppRegistryKey.GetValue("HttpServer") != null;
             notifyCheckBox.Checked = Settings.Default.NotifyMe;
             updatesCheckBox.Checked = Settings.Default.CheckForUpdates;
 
@@ -83,16 +80,16 @@ namespace HttpServer
             if (authenticateCheckBox.Checked)
             {
                 Settings.Default.Username = usernameTextBox.Text;
-                Settings.Default.Password = new TripleDESStringEncryptor().EncryptString(passwordTextBox.Text);
+                Settings.Default.Password = new TripleDesStringEncryptor().EncryptString(passwordTextBox.Text);
             }
 
             if (startupCheckBox.Checked)
             {
-                appRegistryKey.SetValue("HttpServer", Application.ExecutablePath.ToString());
+                AppRegistryKey.SetValue("HttpServer", Application.ExecutablePath);
             }
             else
             {
-                appRegistryKey.DeleteValue("HttpServer", false);
+                AppRegistryKey.DeleteValue("HttpServer", false);
             }
 
             Settings.Default.NotifyMe = notifyCheckBox.Checked;

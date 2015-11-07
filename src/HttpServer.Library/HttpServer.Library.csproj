@@ -40,9 +40,6 @@
     <AssemblyOriginatorKeyFile>HttpServer.Library.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HtmlGenerator">
-      <HintPath>.\HtmlGenerator.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />

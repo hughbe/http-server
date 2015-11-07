@@ -18,7 +18,7 @@ namespace Http.Server
 
         protected override void HandleReceive(HttpListenerRequest request, HttpListenerResponse response, string requestPath)
         {
-            string requestedPath = RootDirectory + requestPath;
+            var requestedPath = RootDirectory + requestPath;
 
             var sentFile = TrySendFile(requestedPath, response);
             if (sentFile)
@@ -55,19 +55,19 @@ namespace Http.Server
             var title = "Directory Listing for " + requestedPath.Replace(RootDirectory, string.Empty);
 
             var document = new HtmlDocument();
-            document.Head.Add(Tag.Title.WithContent(title));
+            document.Head.AddChild(Tag.Title.WithInnerText(title));
 
             var body = document.Body;
             
-            body.Add(Tag.H1.WithContent(title).WithClass("title directory-title"));
-            body.Add(Tag.Hr);
+            body.AddChild(Tag.H1.WithInnerText(title).WithClass("title directory-title"));
+            body.AddChild(Tag.Hr);
 
-            var pathsList = body.Add(Tag.Ul.WithClass("directory-list"));
+            var pathsList = body.AddChild(Tag.Ul.WithClass("directory-list"));
 
             if (!requestedPath.Equals(RootDirectory))
             {
-                var backupAnchor = Tag.A.WithAttribute("href", "../").WithContent("Backup").WithClass("directory-link backup");
-                pathsList.Add(Tag.Li.WithChildren(backupAnchor).WithClass("directory-list-item"));
+                var backupAnchor = Tag.A.WithHref("../").WithInnerText("Backup").WithClass("directory-link backup");
+                pathsList.AddChild(Tag.Li.WithChild(backupAnchor).WithClass("directory-list-item"));
             }
             try
             {
@@ -75,8 +75,8 @@ namespace Http.Server
 
                 foreach (var path in paths)
                 {
-                    var anchor = Tag.A.WithAttribute("href", path).WithContent(path).WithClass("directory-link");
-                    pathsList.Add(Tag.Li.WithChildren(anchor).WithClass("directory-list-item"));
+                    var anchor = Tag.A.WithHref(path).WithInnerText(path).WithClass("directory-link");
+                    pathsList.AddChild(Tag.Li.WithChild(anchor).WithClass("directory-list-item"));
                 }
                 
                 SendHtml(document, response);
@@ -92,16 +92,16 @@ namespace Http.Server
             return true;
         }
 
-        private static List<string> GetFilesAndFolders(string requestedPath)
+        private static IEnumerable<string> GetFilesAndFolders(string requestedPath)
         {
             var paths = new List<string>();
-            foreach (string path in Directory.GetDirectories(requestedPath))
+            foreach (var path in Directory.GetDirectories(requestedPath))
             {
                 var objectPath = path.Replace(requestedPath, "") + "/";
                 paths.Add(objectPath);
             }
 
-            foreach (string path in Directory.GetFiles(requestedPath))
+            foreach (var path in Directory.GetFiles(requestedPath))
             {
                 var objectPath = path.Replace(requestedPath, "");
                 paths.Add(objectPath);

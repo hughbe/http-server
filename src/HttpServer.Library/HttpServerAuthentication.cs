@@ -10,10 +10,12 @@ namespace Http.Server
 
         public static HttpServerAuthentication Protected(string userName, string password)
         {
-            var authentification = new HttpServerAuthentication();
-            authentification.Scheme = AuthenticationSchemes.Basic;
-            authentification.UserName = userName;
-            authentification.Password = password;
+            var authentification = new HttpServerAuthentication
+            {
+                Scheme = AuthenticationSchemes.Basic,
+                UserName = userName,
+                Password = password
+            };
             return authentification;
         }
 

@@ -69,7 +69,7 @@ namespace Http.Server
                 Listener.Start();
 
                 UpdateState(HttpServerState.Started);
-                ListenerThread = new Thread(new ThreadStart(Listen)) { IsBackground = true };
+                ListenerThread = new Thread(Listen) { IsBackground = true };
                 ListenerThread.Start();
             }
             catch (HttpListenerException exception)
@@ -77,14 +77,16 @@ namespace Http.Server
                 Error = exception;
                 UpdateState(HttpServerState.Error);
 
-                if (exception?.ErrorCode == 5 && exception?.ErrorCode == 5) //We need to register as an admin
+                if (exception.ErrorCode == 5 && exception.ErrorCode == 5) //We need to register as an admin
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo("netsh", PrefixRegistrationCommand.Replace("netsh ", string.Empty));
-                    psi.Verb = "runas";
-                    psi.CreateNoWindow = true;
-                    psi.WindowStyle = ProcessWindowStyle.Hidden;
-                    psi.UseShellExecute = true;
-                    Process.Start(psi).WaitForExit();
+                    var psi = new ProcessStartInfo("netsh", PrefixRegistrationCommand.Replace("netsh ", string.Empty))
+                    {
+                        Verb = "runas",
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        UseShellExecute = true
+                    };
+                    Process.Start(psi)?.WaitForExit();
 
                     Debug.WriteLine("An error occured registering the server. Run this command in cmd as administrator to fix: ");
                     Debug.WriteLine(PrefixRegistrationCommand);
@@ -120,10 +122,10 @@ namespace Http.Server
             {
                 try
                 {
-                    HttpListenerContext context = Listener.GetContext();
+                    var context = Listener.GetContext();
 
-                    HttpListenerRequest request = context.Request;
-                    HttpListenerResponse response = context.Response;
+                    var request = context.Request;
+                    var response = context.Response;
 
                     if (Authentication.Scheme == AuthenticationSchemes.Basic)
                     {
@@ -138,10 +140,10 @@ namespace Http.Server
                         }
                     }
 
-                    string rawURL = Uri.UnescapeDataString(request.RawUrl);
-                    Console.WriteLine(rawURL);
+                    var rawUrl = Uri.UnescapeDataString(request.RawUrl);
+                    Console.WriteLine(rawUrl);
 
-                    HandleReceive(request, response, rawURL);
+                    HandleReceive(request, response, rawUrl);
                 }
                 catch { }
             }
@@ -157,13 +159,13 @@ namespace Http.Server
             var title = "Error " + errorCode;
 
             var document = new HtmlDocument();
-            document.Head.Add(Tag.Title.WithContent(title));
+            document.Head.AddChild(Tag.Title.WithInnerText(title));
 
             var body = document.Body;
 
-            body.Add(Tag.H1.WithContent(title).WithClass("title error-title"));
-            body.Add(Tag.Hr);
-            body.Add(Tag.H2.WithContent(errorMessage).WithClass("error-message"));
+            body.AddChild(Tag.H1.WithInnerText(title).WithClass("title error-title"));
+            body.AddChild(Tag.Hr);
+            body.AddChild(Tag.H2.WithInnerText(errorMessage).WithClass("error-message"));
 
             SendHtml(document, response);
         }
@@ -174,10 +176,12 @@ namespace Http.Server
             {
                 return;
             }
+
             if (!string.IsNullOrEmpty(CssStyles))
             {
-                document.Head.Add(Tag.Style.WithContent(CssStyles));
+                document.Head.AddChild(Tag.Style.WithInnerText(CssStyles));
             }
+
             SendData(Encoding.UTF8.GetBytes(document.Serialize()), response);
         }
 

@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
+            var resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
             this.browseButton = new System.Windows.Forms.Button();
             this.portNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.startupCheckBox = new System.Windows.Forms.CheckBox();
