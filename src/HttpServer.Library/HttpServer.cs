@@ -88,7 +88,7 @@ namespace Http.Server
                     };
                     Process.Start(psi)?.WaitForExit();
 
-                    Debug.WriteLine("An error occured registering the server. Run this command in cmd as administrator to fix: ");
+                    Debug.WriteLine("An error occurred registering the server. Run this command in cmd as administrator to fix: ");
                     Debug.WriteLine(PrefixRegistrationCommand);
                     Restart();
                 }
