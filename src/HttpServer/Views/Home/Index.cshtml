@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@if ((bool)ViewData["ErrorOccured"])
+{
+    <h1 class="title inner-title">An error occured</h1>
+    <p>@ViewData["ErrorMessage"]</p>
+}
+else
+{
+    <h1 class="title inner-title">@ViewData["CurrentDirectory"]</h1>
+    <ul class="directory-list" style="font-size: 125%; padding-top: 0.75em;">
+        @if (!(bool)ViewData["IsRootDirectory"])
+        {
+            <li class="directory-list-item"><a href="?path=@ViewData["PreviousRelativeDirectory"]" class="directory-link backup">Backup</a></li>
+        }
+        @foreach (string item in (IEnumerable<string>)ViewData["FilesAndDirectories"])
+        {
+            <li class="directory-list-item"><a href="?path=@System.IO.Path.Combine((string)ViewData["CurrentRelativeDirectory"], item)" class="directory-link">@item</a></li>
+        }
+    </ul>
+}
